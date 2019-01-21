@@ -13,8 +13,11 @@ DROP TABLE IF EXISTS movie_overview;
 
 -- [insert your SQL statement(s) BELOW this line]
 
+.mode csv
 
+create table movies (id integer, name text, score integer);
 
+create table movie_cast (movie_id integer, cast_id integer, cast_name text);
 
 -- [insert your SQL statement(s) ABOVE this line]
 
@@ -28,8 +31,9 @@ DROP TABLE IF EXISTS movie_overview;
 
 -- [insert your SQLite command(s) BELOW this line]
 
+.import ./movie-name-score.txt movies
 
-
+.import ./movie-cast.txt movie_cast
 
 -- [insert your SQLite command(s) ABOVE this line]
 
@@ -46,7 +50,9 @@ SELECT COUNT(*) FROM movie_cast;
 
 -- [insert your SQL statement(s) BELOW this line]
 
-
+create index scores_index on movies(score);
+create index cast_index on movie_cast(cast_id);
+create index movie_index on movies(id);
 
 
 -- [insert your SQL statement(s) ABOVE this line]
@@ -61,7 +67,9 @@ SELECT COUNT(*) FROM movie_cast;
 
 -- [insert your SQL statement(s) BELOW this line]
 
-
+select count(*)*1.00/(select count(*)from movies) as prop
+from movies
+where score > 50;
 
 
 -- [insert your SQL statement(s) ABOVE this line]
@@ -75,7 +83,10 @@ SELECT COUNT(*) FROM movie_cast;
 
 -- [insert your SQL statement(s) BELOW this line]
 
-
+select *
+from movies
+order by score desc, name
+limit 7;
 
 
 -- [insert your SQL statement(s) ABOVE this line]
@@ -89,8 +100,11 @@ SELECT COUNT(*) FROM movie_cast;
 
 -- [insert your SQL statement(s) BELOW this line]
 
-
-
+select cast_id,cast_name,count(*) as movie_count
+from movie_cast
+group by cast_id
+order by movie_count desc
+limit 5;
 
 -- [insert your SQL statement(s) ABOVE this line]
 
@@ -103,8 +117,13 @@ SELECT COUNT(*) FROM movie_cast;
 
 -- [insert your SQL statement(s) BELOW this line]
 
-
-
+select cast_id, cast_name, avg(score) as average_score
+from movie_cast
+inner join movies on movies.id = movie_cast.movie_id
+where score>50
+group by cast_id having count(cast_id)>2
+order by average_score desc, cast_name
+limit 10;
 
 -- [insert your SQL statement(s) ABOVE this line]
 
@@ -117,7 +136,27 @@ SELECT COUNT(*) FROM movie_cast;
 
 -- [insert your SQL statement(s) BELOW this line]
 
+create view good_collaboration as
+select cast_id, cast_name, avg(score) as average_score
+from movie_cast
+inner join movies on movies.id = movie_cast.movie_id
+where score>50
+group by cast_id having count(cast_id)>2
+order by average_score desc, cast_name
+limit 10;
 
+select d1.*
+from demo d1
+where primarykey = (select d2.primarykey
+                    from demo d2
+                    where d2.id = d1.id
+                    order by d2.creator desc
+                    LIMIT 1);
+
+select c1.cast_id, c2. cast_id, c1.movie_id
+from movie_cast c1
+where movie_id = (select c2.movie_id from movie_cast c2 where c1.movie_id = c2.movie_id limit 1)
+limit 5;
 
 
 -- [insert your SQL statement(s) ABOVE this line]
@@ -135,7 +174,9 @@ SELECT AVG(average_movie_score) FROM good_collaboration;
 
 -- [insert your SQL statement(s) BELOW this line]
 
-
+with tdata as (select cast_id,movie_id,row_number() over (Partition by movie_id order by cast_id) n from movie_cast)
+  select a.movie_id movie_id, a.cast_id cast_id_1, b.cast_id cast_id_2
+  from tdata a;
 
 
 -- [insert your SQL statement(s) ABOVE this line]
@@ -149,6 +190,14 @@ SELECT AVG(average_movie_score) FROM good_collaboration;
 
 -- [insert your SQL statement(s) BELOW this line]
 
+create virtual table movie_overview using fts3(
+        id integer,
+        name text,
+        year integer,
+        overview text,
+        popularity decimal);
+
+.import ./movie-overview.txt movie_overview
 
 
 
@@ -160,8 +209,7 @@ SELECT AVG(average_movie_score) FROM good_collaboration;
 
 -- [insert your SQL statement(s) BELOW this line]
 
-
-
+select count(*) from movie_overview where overview match 'fight';
 
 -- [insert your SQL statement(s) ABOVE this line]
 
@@ -174,8 +222,7 @@ SELECT AVG(average_movie_score) FROM good_collaboration;
 
 -- [insert your SQL statement(s) BELOW this line]
 
-
-
+select name from movie_overview where overview match 'love NEAR/5 story';
 
 -- [insert your SQL statement(s) ABOVE this line]
 
