@@ -199,8 +199,6 @@ create virtual table movie_overview using fts3(
 
 .import ./movie-overview.txt movie_overview
 
-
-
 -- [insert your SQL statement(s) ABOVE this line]
 
 -- ***** ***** ***** ***** ***** ***** ***** ***** ***** ***** --
