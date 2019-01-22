@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="en">
+    <style type=text/css>
+			.axis path,
+			.axis line {
+				fill: none;
+				stroke: black;
+				shape-rendering: crispEdges;
+			}
+			.axis text {
+				font-family: sans-serif;
+				font-size: 11px;
+			}
+    </style>
+    <head>
+        <meta charset="utf-8">
+        <title>pjain310</title>
+        <div class="a">
+        <script type="text/javascript" src="d3/d3.v3.min.js"></script>
+    </head>
+    <body>
+        <script type="text/javascript">
+        //3.a Generate co-ordinates for 100 points randomly between 10 and 250
+        var datas = [];
+        var numDataPoints = 100;
+        var xRange = Math.random() * 240;
+        var yRange = Math.random() * 240;
+        // Initialising variables to annotate min - y later
+        var y_min=251;
+        var mflag=0;
+        for (var i = 0; i < numDataPoints; i++) {
+            var newNumber1 = Math.round(Math.random() * xRange)+10;
+            var newNumber2 = Math.round(Math.random() * yRange)+10;
+            var y_temp=newNumber2;
+            datas.push([newNumber1, newNumber2]);
+            if (y_temp<y_min) {y_min=y_temp};
+        }
+        //Initialising width, height and padding for svg
+        var w = 700;
+        var h = 450;
+        var padding=30;
+
+        //3.d Calculating average to colour circle based on whether it is above or below average x value
+        var total = 0;
+        for(var i = 0; i < datas.length; i++) {
+            total += datas[i][0];
+        }
+        var avg = total / datas.length;
+        
+        //3.e Annotate minimum y-value
+          var svg = d3.select("body").append("svg").attr("height",h).attr("width",w);
+          var circles = svg.selectAll("circle")
+                 .data(datas)
+                 .enter()
+                 .append("circle")
+                 .attr("stroke",function(d){
+                   if (d[0]>avg) {return "blue";}
+                   else {return "green";};
+                 })
+                 .attr("fill","none");
+          var xScale = d3.scale.linear()
+                .domain([0, d3.max(datas, function(d) { return d[0]; })])
+                .range([padding, w-padding]);
+          var yScale = d3.scale.linear()
+                .domain([0, d3.max(datas, function(d) { return d[1]; })])
+                .range([h-padding, padding]);
+          var rScale = d3.scale.linear()
+                 .domain([0, d3.max(datas, function(d) {
+                   var d_square=d[0]*d[0]+d[1]*d[1]
+                   return Math.sqrt(d_square);
+                 })])
+                 .range([1, 5]);
+         var xAxis = d3.svg.axis()
+             .scale(xScale)
+             .orient("bottom")
+             .ticks(10);
+         var yAxis = d3.svg.axis()
+         .scale(yScale)
+         .orient("left")
+         .ticks(10);
+          circles.attr("cx", function(d, i) {
+                return xScale(d[0]);
+              })
+          circles.attr("cy", function(d) {
+                return yScale(d[1]);
+              })
+          circles.attr("r", function(d) {
+                return rScale(d[1]);
+              })
+              svg.append("text")
+              .text("pjain310")
+              .attr("x",function(d){
+                return w/2 - padding - 4;
+              })
+              .attr("y",function(d){
+                return  padding;
+              })
+              .attr("fill","black")
+              .attr("font-family","helvetica")
+              .attr("font-size","20px")
+              svg.selectAll("text")
+              .data(datas)
+              .enter()
+              .append("text")
+              .text(function(d){
+                if (d[1]>y_min){
+                  return ""
+                }
+                  else if (mflag==0) {
+                    mflag=1;
+                    return "Y Min: "+y_min;}
+                  else return "";
+              })
+              .attr("x",function(d,i){
+                return xScale(d[0]);
+              })
+              .attr("y",function(d){
+                return yScale(d[1]);
+              })
+              .attr("fill","black")
+              .attr("font-family","helvetica")
+              .attr("font-size","15px")
+              .attr("text-anchor","middle")
+              svg.append("g")
+              .attr("class","axis")
+              .attr("transform", "translate(0," + (h - padding) + ")")
+              .call(xAxis);
+              svg.append("g")
+              .attr("class","axis")
+              .attr("transform", "translate(" + padding + ",0)")
+              .call(yAxis);
+        </script>
+    </body>
+</html>
