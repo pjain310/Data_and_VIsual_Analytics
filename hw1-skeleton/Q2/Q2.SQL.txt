@@ -146,10 +146,10 @@ select movie_cast.cast_id as cast_id_1, ctemp.cid as cast_id_2,
 movie_cast.movie_id as mov_id, ctemp.mscore as movie_score
 from movie_cast
 join ctemp on movie_cast.movie_id = ctemp.mid
-where movie_cast.cast_id!=ctemp.cid;
+where movie_cast.cast_id!=ctemp.cid and movie_cast.cast_id < ctemp.cid;
 
 create view good_collaboration as
-select avg(collaborations.movie_score),collaborations.cast_id_1,collaborations.cast_id_2
+select collaborations.cast_id_1, collaborations.cast_id_2, count(*) as movie_count, avg(collaborations.movie_score) as average_movie_score
 from collaborations
 group by collaborations.cast_id_1,collaborations.cast_id_2 having count(*)>2 and avg(collaborations.movie_score)>40
 order by avg(collaborations.movie_score) desc;
