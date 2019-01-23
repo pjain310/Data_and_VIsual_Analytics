@@ -136,28 +136,23 @@ limit 10;
 
 -- [insert your SQL statement(s) BELOW this line]
 
-create view good_collaboration as
-select cast_id, cast_name, avg(score) as average_score
+create view ctemp as
+select cast_id cid, movie_id as mid, movies.score as mscore
 from movie_cast
-inner join movies on movies.id = movie_cast.movie_id
-where score>50
-group by cast_id having count(cast_id)>2
-order by average_score desc, cast_name
-limit 10;
+join movies on movies.id=movie_cast.movie_id;
 
-select d1.*
-from demo d1
-where primarykey = (select d2.primarykey
-                    from demo d2
-                    where d2.id = d1.id
-                    order by d2.creator desc
-                    LIMIT 1);
+create view collaborations as
+select movie_cast.cast_id as cast_id_1, ctemp.cid as cast_id_2,
+movie_cast.movie_id as mov_id, ctemp.mscore as movie_score
+from movie_cast
+join ctemp on movie_cast.movie_id = ctemp.mid
+where movie_cast.cast_id!=ctemp.cid;
 
-select c1.cast_id, c2. cast_id, c1.movie_id
-from movie_cast c1
-where movie_id = (select c2.movie_id from movie_cast c2 where c1.movie_id = c2.movie_id limit 1)
-limit 5;
-
+create view good_collaboration as
+select avg(collaborations.movie_score),collaborations.cast_id_1,collaborations.cast_id_2
+from collaborations
+group by collaborations.cast_id_1,collaborations.cast_id_2 having count(*)>2 and avg(collaborations.movie_score)>40
+order by avg(collaborations.movie_score) desc;
 
 -- [insert your SQL statement(s) ABOVE this line]
 
@@ -173,10 +168,6 @@ SELECT AVG(average_movie_score) FROM good_collaboration;
 -- (h) Find the best collaborators
 
 -- [insert your SQL statement(s) BELOW this line]
-
-with tdata as (select cast_id,movie_id,row_number() over (Partition by movie_id order by cast_id) n from movie_cast)
-  select a.movie_id movie_id, a.cast_id cast_id_1, b.cast_id cast_id_2
-  from tdata a;
 
 
 -- [insert your SQL statement(s) ABOVE this line]
