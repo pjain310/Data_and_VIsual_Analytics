@@ -90,7 +90,7 @@ for id in movies_dict:
     for movie in results["results"]:
         if s_count<5:
             s_count+=1
-            row="{},{}".format(min(movies_dict[id],movie["title"]),max(movies_dict[id],movie["title"]))
+            row="{},{}".format(min(id,movie["id"]),max(id,movie["id"]))
             s_movies_set.add(row)
         else:
             break
@@ -109,4 +109,4 @@ with open("movie_ID_sim_movie_ID.csv","w") as f:
         f.write("{}\n".format(entry))
 
 #Print elapsed time
-#print("Time elapsed: {}".format(time.time()-st))
+print("Time elapsed: {}".format(time.time()-st))

@@ -27,17 +27,30 @@
         var yRange = Math.random() * 240;
         // Initialising variables to annotate min - y later
         var y_min=251;
+        var t_max=10;
         var mflag=0;
         for (var i = 0; i < numDataPoints; i++) {
-            var newNumber1 = Math.round(Math.random() * xRange)+10;
-            var newNumber2 = Math.round(Math.random() * yRange)+10;
+            var newNumber1 = Math.random() * xRange+10;
+            var newNumber2 = Math.random() * yRange+10;
             var y_temp=newNumber2;
+            var x_temp=newNumber1;
             datas.push([newNumber1, newNumber2]);
             if (y_temp<y_min) {y_min=y_temp};
+            if (Math.max(x_temp,y_temp)>t_max) {t_max=Math.max(x_temp,y_temp)}
         }
+
+        var rads=[];
+
+        //Make list of radii for each point
+        for (var i=0; i< numDataPoints; i++){
+          var distance=Math.sqrt(datas[i][0]*datas[i][0]+datas[i][1]*datas[i][1])
+          rads.push(distance)
+        }
+
+        //var datas=[[5,4],[3,4],[7,9],[8,0],[1,2],[10,8],[3,1],[8,7],[2,9]];
         //Initialising width, height and padding for svg
-        var w = 700;
-        var h = 450;
+        var w = 500;
+        var h = 500;
         var padding=30;
 
         //3.d Calculating average to colour circle based on whether it is above or below average x value
@@ -46,7 +59,7 @@
             total += datas[i][0];
         }
         var avg = total / datas.length;
-        
+
         //3.e Annotate minimum y-value
           var svg = d3.select("body").append("svg").attr("height",h).attr("width",w);
           var circles = svg.selectAll("circle")
@@ -59,15 +72,15 @@
                  })
                  .attr("fill","none");
           var xScale = d3.scale.linear()
-                .domain([0, d3.max(datas, function(d) { return d[0]; })])
+                .domain([0,t_max])
                 .range([padding, w-padding]);
           var yScale = d3.scale.linear()
-                .domain([0, d3.max(datas, function(d) { return d[1]; })])
+                .domain([0, t_max])
                 .range([h-padding, padding]);
           var rScale = d3.scale.linear()
-                 .domain([0, d3.max(datas, function(d) {
-                   var d_square=d[0]*d[0]+d[1]*d[1]
-                   return Math.sqrt(d_square);
+                 .domain([0, d3.max(rads, function(d) {
+                   return d;
+                   //return d;
                  })])
                  .range([1, 5]);
          var xAxis = d3.svg.axis()
@@ -81,11 +94,12 @@
           circles.attr("cx", function(d, i) {
                 return xScale(d[0]);
               })
-          circles.attr("cy", function(d) {
+          circles.attr("cy", function(d, i) {
                 return yScale(d[1]);
               })
           circles.attr("r", function(d) {
-                return rScale(d[1]);
+                var in_r=Math.sqrt(d[0]*d[0]+d[1]*d[1])
+                return rScale(in_r);
               })
               svg.append("text")
               .text("pjain310")
@@ -108,7 +122,7 @@
                 }
                   else if (mflag==0) {
                     mflag=1;
-                    return "Y Min: "+y_min;}
+                    return "Y Min: "+y_min.toFixed(3);}
                   else return "";
               })
               .attr("x",function(d,i){
@@ -117,7 +131,7 @@
               .attr("y",function(d){
                 return yScale(d[1]);
               })
-              .attr("fill","black")
+              .attr("fill","purple")
               .attr("font-family","helvetica")
               .attr("font-size","15px")
               .attr("text-anchor","middle")

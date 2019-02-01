@@ -67,7 +67,7 @@ create index movie_index on movies(id);
 
 -- [insert your SQL statement(s) BELOW this line]
 
-select count(*)*1.00/(select count(*)from movies) as prop
+select count(*)*100.00/(select count(*)from movies) as prop
 from movies
 where score > 50;
 
@@ -120,8 +120,8 @@ limit 5;
 select cast_id, cast_name, avg(score) as average_score
 from movie_cast
 inner join movies on movies.id = movie_cast.movie_id
-where score>50
-group by cast_id having count(cast_id)>2
+where score>50 and cast_id in (select cast_id from movie_cast group by cast_id having count(cast_id)>2)
+group by cast_id
 order by average_score desc, cast_name
 limit 10;
 
@@ -139,19 +139,19 @@ limit 10;
 create view ctemp as
 select cast_id cid, movie_id as mid, movies.score as mscore
 from movie_cast
-join movies on movies.id=movie_cast.movie_id;
+inner join movies on movies.id=movie_cast.movie_id;
 
 create view collaborations as
 select movie_cast.cast_id as cast_id_1, ctemp.cid as cast_id_2,
 movie_cast.movie_id as mov_id, ctemp.mscore as movie_score
 from movie_cast
-join ctemp on movie_cast.movie_id = ctemp.mid
+inner join ctemp on movie_cast.movie_id = ctemp.mid
 where movie_cast.cast_id!=ctemp.cid and movie_cast.cast_id < ctemp.cid;
 
 create view good_collaboration as
 select collaborations.cast_id_1, collaborations.cast_id_2, count(*) as movie_count, avg(collaborations.movie_score) as average_movie_score
 from collaborations
-group by collaborations.cast_id_1,collaborations.cast_id_2 having count(*)>2 and avg(collaborations.movie_score)>40
+group by collaborations.cast_id_1, collaborations.cast_id_2 having count(*)>2 and avg(collaborations.movie_score)>40
 order by avg(collaborations.movie_score) desc;
 
 -- [insert your SQL statement(s) ABOVE this line]
@@ -169,6 +169,20 @@ SELECT AVG(average_movie_score) FROM good_collaboration;
 
 -- [insert your SQL statement(s) BELOW this line]
 
+create view cast_collabs as
+select cast_id_1 as cast_id
+from good_collaboration
+union
+select cast_id_2 as cast_id
+from good_collaboration;
+
+select cast_collabs.cast_id, movie_cast.cast_name, avg(good_collaboration.average_movie_score) as collaboration_score
+from good_collaboration
+inner join cast_collabs on cast_collabs.cast_id=good_collaboration.cast_id_1 or cast_collabs.cast_id=good_collaboration.cast_id_2
+inner join movie_cast on movie_cast.cast_id=cast_collabs.cast_id
+group by cast_collabs.cast_id
+order by collaboration_score desc,movie_cast.cast_name
+limit 5;
 
 -- [insert your SQL statement(s) ABOVE this line]
 
@@ -198,7 +212,7 @@ create virtual table movie_overview using fts3(
 
 -- [insert your SQL statement(s) BELOW this line]
 
-select count(*) from movie_overview where overview match 'fight';
+select count(*) as count_overview from movie_overview where overview match 'fight';
 
 -- [insert your SQL statement(s) ABOVE this line]
 
@@ -211,7 +225,7 @@ select count(*) from movie_overview where overview match 'fight';
 
 -- [insert your SQL statement(s) BELOW this line]
 
-select name from movie_overview where overview match 'love NEAR/5 story';
+select id from movie_overview where overview match 'love NEAR/5 story';
 
 -- [insert your SQL statement(s) ABOVE this line]
 
