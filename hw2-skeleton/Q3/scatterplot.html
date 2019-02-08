@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style type=text/css>
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+  }
+  .axis text {
+    font-family: sans-serif;
+    font-size: 11px;
+  }
+</style>
+<script src="../lib/d3.v5.min.js"></script>
+<head>
+    <meta charset="utf-8">
+    <title>Scatterplot_PRERNA</title>
+</head>
+<body>
+  <script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+  <script>
+
+    d3.csv('movies.csv')
+    .then(function(dataset) {
+      dataset.forEach(function(d) {
+      d.Rating = +d.Rating;
+      d.WinsNoms = +d.WinsNoms;
+      d.IsGoodRating = +d.IsGoodRating;
+    });
+
+    var w=800;
+    var h=500;
+    var padding=40;
+
+      var xScale = d3.scaleLinear()
+      .domain([0,8.6])
+      .range([padding, w-padding]);
+
+      var yScale = d3.scaleLinear()
+      .domain([0, 271])
+      .range([h-padding, padding]);
+
+      var svg = d3.select("body")
+                  .append("svg")
+                  .attr("width", w)
+                  .attr("height", h);
+
+      svg.append("g")
+      .attr("class", "x axis")
+      .attr("ticks",10)
+      .attr("transform", "translate(0," + (h - padding/1.2) + ")")
+      .call(d3.axisBottom(xScale));
+
+      svg.append("g")
+      .attr("class", "y axis")
+      .attr("ticks",10)
+      .attr("transform", "translate(" + padding/1.2 + ",0)")
+      .call(d3.axisLeft(yScale));
+
+      var colourScale = d3.scaleOrdinal()
+      .domain([0,1])
+      .range(["red","blue"]);
+
+      var shapeScale = d3.scaleOrdinal()
+      .domain([0,1])
+      .range([d3.symbolCircle, d3.symbolCross]);
+
+      var symbol = d3.symbol()
+      .size(15);
+
+      svg.selectAll(".symbol")
+      .data(dataset)
+      .enter().append("path")
+      .attr("class", "symbol")
+      .attr("d", function(d, i) { return symbol.type(shapeScale(d.IsGoodRating))(); })
+      .style("stroke", function(d) { return colourScale(d.IsGoodRating); })
+      .attr("transform", function(d) {
+      return "translate(" + xScale(d.Rating) + "," + yScale(d.WinsNoms) +")";
+    })
+      .attr("fill","none");
+
+
+    });
+     </script>
+   </body>
+</html>
