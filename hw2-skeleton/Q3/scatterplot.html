@@ -11,6 +11,20 @@
     font-family: sans-serif;
     font-size: 11px;
   }
+
+  .legend rect {
+  fill:white;
+  stroke:black;
+  opacity:0.8;}
+
+  .grid line {
+    stroke: lightgrey;
+    opacity: 0.7;
+}
+.grid path {
+      stroke-width: 0;
+}
+
 </style>
 <script src="../lib/d3.v5.min.js"></script>
 <head>
@@ -27,36 +41,34 @@
       d.Rating = +d.Rating;
       d.WinsNoms = +d.WinsNoms;
       d.IsGoodRating = +d.IsGoodRating;
+      d.Budget = +d.Budget;
     });
 
+
+    //Specify Padding, Height and Widhh for SVG elements
     var w=800;
     var h=500;
     var padding=40;
 
+
+    //Create all scaling functions
       var xScale = d3.scaleLinear()
-      .domain([0,8.6])
+      .domain([0,d3.max(dataset,function(d){
+        return d.Rating;}
+      )])
       .range([padding, w-padding]);
 
+      var yScale2 = d3.scaleLinear()
+      .domain([0,d3.max(dataset,function(d){
+        return d.Budget;}
+      )])
+      .range([h - padding, padding]);
+
       var yScale = d3.scaleLinear()
-      .domain([0, 271])
+      .domain([0, d3.max(dataset,function(d){
+        return d.WinsNoms;}
+      )])
       .range([h-padding, padding]);
-
-      var svg = d3.select("body")
-                  .append("svg")
-                  .attr("width", w)
-                  .attr("height", h);
-
-      svg.append("g")
-      .attr("class", "x axis")
-      .attr("ticks",10)
-      .attr("transform", "translate(0," + (h - padding/1.2) + ")")
-      .call(d3.axisBottom(xScale));
-
-      svg.append("g")
-      .attr("class", "y axis")
-      .attr("ticks",10)
-      .attr("transform", "translate(" + padding/1.2 + ",0)")
-      .call(d3.axisLeft(yScale));
 
       var colourScale = d3.scaleOrdinal()
       .domain([0,1])
@@ -66,9 +78,73 @@
       .domain([0,1])
       .range([d3.symbolCircle, d3.symbolCross]);
 
-      var symbol = d3.symbol()
-      .size(15);
 
+      //Create svg and symbol elements
+      var svg = d3.select("body")
+                  .append("svg")
+                  .attr("width", w)
+                  .attr("height", h);
+
+      var svg2 = d3.select("body")
+                  .append("svg")
+                  .attr("width", w)
+                  .attr("height", h);
+
+      var symbol = d3.symbol()
+                    .size(15);
+
+
+      //Add axes for  SVG - 1
+      svg.append("g")
+      .attr("class", "x axis")
+      .attr("ticks",20)
+      .attr("transform", "translate(0," + (h - padding) + ")")
+      .call(d3.axisBottom(xScale));
+
+      svg.append("g")
+      .attr("class", "y axis")
+      .attr("ticks",12)
+      .attr("transform", "translate(" + padding*2 + ",0)")
+      .call(d3.axisLeft(yScale));
+
+      //Add axis titles
+      svg.append("text")
+      .attr("x", (padding/2))
+      .attr("y", h/2 + (padding/2))
+      .attr("text-anchor", "middle")
+      .attr("transform","rotate(-90 30 260)")
+      .style("font-size", "14px")
+      .text("Budget");
+
+      svg.append("text")
+      .attr("x", w/2 + (padding/2))
+      .attr("y", h - (padding/2.5))
+      .attr("text-anchor", "middle")
+      .style("font-size", "14px")
+      .text("Ratings");
+
+      //Add gridlines for SVG - 2
+      var gridlinesa = d3.axisLeft()
+                    .tickFormat("")
+                    .tickSize(-w)
+                    .scale(yScale);
+
+      var gridlinesb = d3.axisBottom()
+                    .tickFormat("")
+                    .tickSize(-w)
+                    .scale(xScale);
+
+      svg.append("g")
+     .attr("class", "grid")
+     .attr("transform", "translate(" + padding*2 + ",0)")
+     .call(gridlinesa);
+
+     svg.append("g")
+    .attr("class", "grid")
+    .attr("transform", "translate("+padding+ "," + (h - padding) + ")")
+    .call(gridlinesb);
+
+      //Add values for SVG - 1
       svg.selectAll(".symbol")
       .data(dataset)
       .enter().append("path")
@@ -79,6 +155,99 @@
       return "translate(" + xScale(d.Rating) + "," + yScale(d.WinsNoms) +")";
     })
       .attr("fill","none");
+
+      // Add header for SVG - 1
+      svg.append("text")
+        .attr("x", (w / 2))
+        .attr("y", 0 + (padding/ 2))
+        .attr("text-anchor", "middle")
+        .style("font-size", "18px")
+        .style("text-decoration", "underline")
+        .text("Wins/Nominations vs Ratings Graph");
+
+      // Add legend for SVG - 1
+
+
+      //Add gridlines for SVG - 2
+      //Add gridlines
+      var gridlines2a = d3.axisLeft()
+                    .tickFormat("")
+                    .tickSize(-w)
+                    .scale(yScale2);
+
+      var gridlines2b = d3.axisBottom()
+                    .tickFormat("")
+                    .tickSize(-w)
+                    .scale(xScale);
+
+      svg2.append("g")
+     .attr("class", "grid")
+     .attr("transform", "translate(" + padding*2 + ",0)")
+     .call(gridlines2a);
+
+     svg2.append("g")
+    .attr("class", "grid")
+    .attr("transform", "translate("+padding+ "," + (h - padding) + ")")
+    .call(gridlines2b);
+
+      // Add values for SVG - 2
+      svg2.selectAll(".symbol")
+        .data(dataset)
+        .enter().append("path")
+        .attr("class", "symbol")
+        .attr("d", function(d, i) { return symbol.type(shapeScale(d.IsGoodRating))(); })
+        .style("stroke", function(d) { return colourScale(d.IsGoodRating); })
+        .attr("transform", function(d) {
+        return "translate(" + xScale(d.Rating) + "," + yScale2(d.Budget) +")";
+      })
+        .attr("fill","none");
+
+      // Add axes for SVG - 2
+      svg2.append("g")
+      .attr("class", "x axis")
+      .attr("ticks",20)
+      .attr("transform", "translate(0," + (h - padding) + ")")
+      .call(d3.axisBottom(xScale));
+
+      svg2.append("g")
+      .attr("class", "y axis")
+      .attr("ticks",12)
+      .attr("transform", "translate(" + padding*2 + ",0)")
+      .call(d3.axisLeft(yScale2))
+      .selectAll("text")
+            .style("text-anchor", "start")
+            .attr("dx", "-5.5em")
+            .attr("dy", ".1em")
+            .attr("transform", "rotate(-45)" );
+
+      //Add axis titles
+      svg2.append("text")
+      .attr("x", (padding/2))
+      .attr("y", h/2 + (padding/2))
+      .attr("text-anchor", "middle")
+      .attr("transform","rotate(-90 10 260)")
+      .style("font-size", "14px")
+      .text("Budget");
+
+      svg2.append("text")
+      .attr("x", w/2 + (padding/2))
+      .attr("y", h - (padding/2.5))
+      .attr("text-anchor", "middle")
+      .style("font-size", "14px")
+      .text("Ratings");
+
+
+      // Add header for SVG - 2
+      svg2.append("text")
+        .attr("x", (w / 2))
+        .attr("y", 0 + (padding/2))
+        .attr("text-anchor", "middle")
+        .style("font-size", "18px")
+        .style("text-decoration", "underline")
+        .text("Budget vs Ratings Graph");
+
+      //Add legend for SVG - 2
+
 
 
     });
