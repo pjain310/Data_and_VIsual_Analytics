@@ -1,0 +1,219 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style type=text/css>
+  .axis path,
+  .axis line {
+    fill: none;
+    stroke: black;
+    shape-rendering: crispEdges;
+  }
+  .axis text {
+    font-family: sans-serif;
+    font-size: 11px;
+  }
+
+</style>
+<div class="heatmap"></div>
+<script src="../lib/d3.v5.min.js"></script>
+<head>
+    <meta charset="utf-8">
+    <title>Heatmap</title>
+</head>
+<body>
+  <script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+  <script>
+
+    //Specify Padding, Height and Widhh for SVG elements and specify listsof all categories
+    var w=450;
+    var h=600;
+    var padding=40;
+    var cellsize=50;
+    var itemsize=cellsize-1;
+
+    var Borough=["Bronx","Brooklyn","Manhattan","Queens","Staten Island"];
+    var crimes=["Assault","Burglary","Housing","Murder","Robbery","Shooting"];
+    var years=["2011","2012","2013","2014","2015"];
+    colours=["#fff7fb","#ece7f2","#d0d1e6","#a6bddb","#74a9cf","#3690c0","#0570b0","#045a8d","#023858"]
+
+    // Create svg elements
+    var svg= d3.select('.heatmap')
+    .append("svg")
+    .attr("width", w)
+    .attr("height", h)
+    .append("g");
+
+    //Create option switch functionality
+    var select = d3.select('body')
+      .append('select')
+      	.attr('class','select')
+        .on('change',onchange);
+
+    var options = select.selectAll('option')
+    	.data(years).enter()
+    	.append('option')
+    		.text(function (d) { return d; });
+
+    onchange();
+
+    function onchange() {
+    	selectValue = d3.select('select').property('value')
+      d3.selectAll("svg").remove();
+
+      // Create svg elements
+      var svg= d3.select('.heatmap')
+      .append("svg")
+      .attr("width", w)
+      .attr("height", h)
+      .append("g");
+
+      var datas=[];
+
+      // Load heatmap.csv file
+      d3.csv('heatmap.csv')
+      .then(function(dataset) {
+        dataset.forEach(function(d) {
+        if (d.Year==selectValue){
+        datas.push({"Borough":"Bronx","Crime Rate":+d.Bronx,"Crime Type":d["Crime Type"],"Year":d.Year});
+        datas.push({"Borough":"Brooklyn","Crime Rate":+d.Brooklyn,"Crime Type":d["Crime Type"],"Year":d.Year});
+        datas.push({"Borough":"Manhattan","Crime Rate":+d.Manhattan,"Crime Type":d["Crime Type"],"Year":d.Year});
+        datas.push({"Borough":"Queens","Crime Rate":+d.Queens,"Crime Type":d["Crime Type"],"Year":d.Year});
+        datas.push({"Borough":"Staten Island","Crime Rate":+d["Staten Island"],"Crime Type":d["Crime Type"],"Year":d.Year});};
+      });
+
+
+      //Create scaling functions
+      var yScale = d3.scaleOrdinal()
+        .domain(Borough)
+        .range([99,147,196,245,293]);
+
+      var xScale = d3.scaleOrdinal()
+        .domain(crimes)
+        .range([147,196,245,293,342,391]);
+
+      var cScale = d3.scaleQuantile()
+        .domain([0,8,d3.max(datas,function(d){
+          return d["Crime Rate"];
+        })])
+        .range(["#fff7fb","#ece7f2","#d0d1e6","#a6bddb","#74a9cf","#3690c0","#0570b0","#045a8d","#023858"]);
+
+
+      //Create axes
+      var xAxis = d3.axisBottom()
+          .scale(xScale)
+          .tickFormat(function (d) {
+              return d;
+          });
+
+      var yAxis = d3.axisLeft()
+          .scale(yScale)
+          .tickFormat(function (d) {
+              return d;
+          });
+
+      console.log("Axes done")
+
+      console.log("Svg done")
+
+      //Add Axes
+      svg.append("g")
+          .attr("class", "y axis")
+          .call(yAxis)
+          .attr("transform", "translate(" + padding*3.2 + ","+25+")")
+          .selectAll('text')
+          .attr('font-weight', 'normal')
+          .style('font-family','monospace');
+
+      svg.append("g")
+          .attr("class", "x axis")
+          .call(xAxis)
+          .attr("transform", "translate("+25+"," + (323+padding) + ")")
+          .selectAll('text')
+          .attr('font-family','monospace')
+          .attr('font-weight', 'normal')
+          .style('font-family','monospace')
+          .style("text-anchor", "end")
+          .attr("dx", "-1em")
+          .attr("dy", "-0.5em")
+          .attr("transform", function (d) {
+              return "rotate(-90)";
+            });
+
+
+      //Create heatmap
+      svg.selectAll('rect')
+      .data(datas)
+      .enter().append('g').append('rect')
+      .attr('class', 'cell')
+      .attr('width', cellsize)
+      .attr('height', cellsize)
+      .attr('y', function(d) { return yScale(d.Borough); })
+      .attr('x', function(d) { return xScale(d["Crime Type"]); })
+      .attr('fill', function(d) { return cScale(d["Crime Rate"]); });
+
+      // Add legend
+
+      var legend = svg.selectAll("body").append("g")
+      .data([0].concat(cScale.quantiles()), function(d) { return d; })
+      .enter();
+
+      legend.append("text")
+        .text(function(d) { return "  " + Math.round(d) + ""; })
+        .attr("x", function(d, i) { return 32 * i + 50; })
+        .attr("y", h-60)
+        .style("font-size", "12px")
+        .style("font-family","helvetica");
+
+      legend.append("rect")
+        .attr("x", function(d, i) { return 32 * i + 50 ; })
+        .attr("y", h-100)
+        .attr("width", 30)
+        .attr("height", 50 / 2)
+        .style("fill", function(d, i) { return colours[i]; });
+
+        svg.append("text")
+        .attr("x", 50)
+        .attr("y", h-110)
+        .attr("text-anchor","start")
+        .style("font-size", "12px")
+        .style("font-family","monospace")
+        .text("No. of crimes");
+
+      legend.exit().remove();
+
+      //Add labels
+      svg.append("text")
+      .attr("x", w/2+padding*2)
+      .attr("y", 450)
+      .attr("text-anchor","middle")
+      .style("font-size", "14px")
+      .style("font-family","helvetica")
+      .text("Crime Type");
+
+      svg.append("text")
+      .attr("x", padding)
+      .attr("y", 250)
+      .attr("transform","rotate(-90 40 250)")
+      .style("font-size", "14px")
+      .style("font-family","helvetica")
+      .text("Borough");
+
+      svg.append("text")
+      .attr("x", cellsize*7)
+      .attr("y", 50+padding)
+      .style("font-size", "14px")
+      .style("font-family","helvetica")
+      .text("Year: "+selectValue);
+
+      svg.append("text")
+      .attr("x", w/2+padding/2)
+      .attr("y", padding/2)
+      .style("font-size", "18px")
+      .attr("text-anchor", "middle")
+      .style("text-decoration", "underline")
+      .style("font-family","Palatino Linotype")
+      .text("Crime Statistics for the Year "+selectValue);
+
+    });
+  };
+  </script>
+</body>
