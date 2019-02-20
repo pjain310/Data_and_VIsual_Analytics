@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<style type=text/css>
+  .counties {
+    fill: none;
+    stroke: #fff;
+    stroke-linejoin: round;
+  }
+  .d3-tip.n:after {
+    margin: -1px 0 0 0;
+    top: 100%;
+  }
+  .d3-tip {
+    line-height: 1;
+    text-align: center;
+    font-family:sans-serif;
+    padding: 10px;
+    font-size:12px;
+    background: rgba(197,27,138, 0.8);
+    color: #fff;
+    border-radius: 3px;
+  }
+
+</style>
+<script src="../lib/d3.v5.min.js"></script>
+<head>
+    <meta charset="utf-8">
+    <title>Chloropleth Map</title>
+</head>
+<body>
+  <script type="text/javascript" src="../lib/d3.v5.min.js"></script>
+  <script src="../lib/topojson.v2.min.js"></script>
+  <script src="../lib/d3-tip.min.js"></script>
+  <script src="../lib/d3-scale-chromatic.v1.min.js"></script>
+  <script>
+
+    //Use promises to load poverty and county data and map data
+    var poverty_data=d3.csv('county_poverty.csv');
+    var county_data=d3.csv('county_detail.csv');
+    var map_data=d3.json('us.json')
+
+    Promise.all([poverty_data,county_data,map_data]).then(function(data){
+
+      //Create svg for Chloropleth
+      var h=1000;
+      var w=1100;
+      var padding=50;
+
+      var colours=["#f7fcf5","#e5f5e0","#c7e9c0","#a1d99b","#74c476","#41ab5d","#238b45","#006d2c","#00441b"]
+
+      var svg = d3.select("body")
+                  .append("svg")
+                  .attr("width", w)
+                  .attr("height", h);
+
+      var max=d3.max(data[0],function(d){
+        return +d.Poverty;
+      })
+
+      //Create scales
+      var cScale = d3.scaleQuantile()
+        .domain([0,18])
+        .range(["#f7fcf5","#e5f5e0","#c7e9c0","#a1d99b","#74c476","#41ab5d","#238b45","#006d2c","#00441b"]);
+
+        console.log(d3.max(data[0],function(d){
+          return +d.Poverty;
+        }))
+
+      var yScale = d3.scaleLinear()
+      .domain()
+
+      //Create var for map
+      // Add header for SVG - 1
+      svg.append("text")
+        .attr("x", (w / 2))
+        .attr("y", 0 + (padding))
+        .attr("text-anchor", "middle")
+        .style("font-size", "38px")
+        .style("text-decoration", "underline")
+        .style("font-family","Palatino Linotype")
+        .text("Chloropleth Map of County Data");
+
+
+      //Add legend
+      svg.append("text")
+        .attr("x", w-padding*1.25)
+        .attr("y", 80)
+        .attr("text-anchor", "middle")
+        .style("font-size", "16px")
+        .style("font-weight", "bold")
+        .style("font-family","Palatino Linotype")
+        .text("Legend");
+
+
+      var legend = svg.selectAll("body").append("g")
+      .data([0].concat(cScale.quantiles()), function(d) { return d; })
+      .enter();
+
+
+      legend.enter().append("g")
+          .attr("class", "legend");
+
+      legend.append("text")
+        .text(function(d) { return "  " + Math.round(d) + "%"; })
+        .attr("x", w-padding)
+        .attr("y", function(d, i) { return 25 * i +115; })
+        .style("font-size", "14px")
+        .style("font-family","helvetica");
+
+      legend.append("rect")
+        .attr("x", w-padding*2)
+        .attr("y", function(d, i) { return 25 * i +100; })
+        .attr("width", 30)
+        .attr("height", 22)
+        .style("fill", function(d, i) { return colours[i]; });
+
+      //Make Chloropleth map
+
+      var path = d3.geoPath();
+
+      var geojson = topojson.feature(data[2], data[2].objects.counties);
+
+      var poverty={};
+      var county={};
+      var state={};
+      var tpop={};
+      var pci={};
+
+      data[0].forEach(function(d){
+        poverty[d.CensusId]=+d.Poverty;
+        county[d.CensusId]=d.County;
+        state[d.CensusId]=d.State;
+      })
+
+      data[1].forEach(function(d){
+        tpop[d.CensusId]=+d.TotalPop;
+        pci[d.CensusId]=d.IncomePerCap;
+      })
+
+      console.log(state)
+
+      var tip = d3.tip()
+        .attr('class', 'd3-tip')
+        .offset([-5, 0])
+        .html(function(d) {
+          return "State: "+ state[d.id]+"<br/ >County: "+county[d.id]+"<br/ >Poverty Rate: "+poverty[d.id]+"%"+"<br/ >Total Population: "+tpop[d.id]+"<br/ >Per Capita Income: "+pci[d.id];
+             }
+        )
+
+
+      //Invoke the tip
+      svg.call(tip)
+
+      svg.selectAll("path")
+        .data(geojson.features)
+        .enter().append("path")
+        .attr("d", path)
+        .attr("transform", "translate(0,80)")
+        .attr("fill", function(d) { return cScale(poverty[d.id]); })
+        .on('mouseover', tip.show)
+        .on('mouseout', tip.hide)
+        .append("title");
+
+    });
+
+    //
+
+
+
+
+  </script>
+</body>
+</html>
