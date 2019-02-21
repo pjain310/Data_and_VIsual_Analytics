@@ -84,14 +84,12 @@
     //Initialise svg elements
     var svg1 = d3.select("body").append("svg")
     .attr("height", h )
-    .attr("width", w)
-    .append("g");
+    .attr("width", w);
 
     console.log("svg1 elems created")
 
     //Create horizontal bar chart
     var hbar=svg1.selectAll(".hbar")
-    .append("g")
     .data(cdata)
     .enter();
 
@@ -151,8 +149,7 @@
 
     var svg = d3.select("body").append("svg")
     .attr("height", hline)
-    .attr("width", wline )
-    .append("g");
+    .attr("width", wline );
 
 
     function graphOn(cdata){
@@ -192,7 +189,7 @@
       console.log("xaxis "+ xl(cdata.growth[0][0]))
       console.log("yaxis "+ yl(cdata.growth[0][1]))
 
-      var lchart=svg.selectAll("body").append("svg")
+      var lchart=svg.selectAll("path").append("svg")
       .attr("height",hl)
       .attr("width",wl)
       .append("g")
@@ -236,7 +233,7 @@
       .style("stroke-width", 2)
       .style("fill", "none");
 
-      lchart.append("text")
+      lchart.append("g").append("text")
       .attr("x", wl/2+paddingl/2)
       .attr("y", paddingl)
       .style("font-size", "15px")
@@ -245,7 +242,7 @@
       .style("font-family","Palatino Linotype")
       .text("Growth Percentage Data for "+cdata.country);
 
-      lchart.append("text")
+      lchart.append("g").append("text")
       .attr("x", paddingl)
       .attr("y", paddingl*5)
       .attr("transform","rotate(-90 25 30)")
@@ -255,7 +252,7 @@
       .style("font-family","helvetica")
       .text("Percentage Growth");
 
-      lchart.append("text")
+      lchart.append("g").append("text")
       .attr("x", wl - paddingl*4)
       .attr("y", hl -paddingl*3)
       .attr("stroke","darkgrey")
@@ -268,7 +265,8 @@
     }
 
     function graphOff(cdata){
-      d3.select(".lchart").remove();
+      d3.selectAll("path").remove();
+      d3.selectAll("g").remove();
       d3.select(this).style("fill", "steelblue");
     }
 
