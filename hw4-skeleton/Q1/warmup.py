@@ -1,6 +1,6 @@
 import mmap
 from struct import pack, unpack
-from math import sqrt  
+from math import sqrt
 
 """
 ORIGINAL CODE:
@@ -24,7 +24,7 @@ def write_data_to_binary_file(item_list, file_name):
     with open(file_name, "wb") as file_object:
         for item in item_list:
             file_object.write(
-                pack("<i", item))  # ~~~ MODIFY THIS LINE (i) ~~~
+                pack("<if", item, sqrt(item)))  # ~~~ MODIFY THIS LINE (i) ~~~
 
 
 
@@ -45,7 +45,7 @@ the first value in the pair is stored in 'int' C type and the second in 'float' 
 Modify the value of the num_bytes variable appropriately in order to accomplish this.
 """
 def get_memory_map_from_binary_file(file_name):
-    num_bytes = 64 * 4  # ~~~ MODIFY THIS LINE (ii) ~~~
+    num_bytes = 25 * 8  # ~~~ MODIFY THIS LINE (ii) ~~~
 
     with open(file_name, "r") as file_object:
         file_map = mmap.mmap(
@@ -88,9 +88,9 @@ each of which tuple contains 1 integer and 1 float value.
 def parse_memory_map(file_map):
     parsed_values = []
 
-    for i in range(64):  # ~~~ MODIFY THIS LINE (iii) ~~~
+    for i in range(25):  # ~~~ MODIFY THIS LINE (iii) ~~~
         parsed_values.append(
-            unpack("<i", file_map[i * 4 : i * 4 + 4]))  # ~~~ MODIFY THIS LINE (iv) ~~~
+            unpack("<if", file_map[i * 8 : i * 8 + 8]))  # ~~~ MODIFY THIS LINE (iv) ~~~
 
     return parsed_values
 
@@ -120,7 +120,7 @@ the warmup function should print:
 (125, 11.180339813232422)
 """
 def warmup():
-    item_list = range(64)  # ~~~ MODIFY THIS LINE (v) ~~~
+    item_list = range(5,128,5)  # ~~~ MODIFY THIS LINE (v) ~~~
 
     write_data_to_binary_file(item_list=item_list, file_name="out_warmup.bin")
 

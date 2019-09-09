@@ -39,18 +39,10 @@
             if (Math.max(x_temp,y_temp)>t_max) {t_max=Math.max(x_temp,y_temp)}
         }
 
-        var rads=[];
-
-        //Make list of radii for each point
-        for (var i=0; i< numDataPoints; i++){
-          var distance=Math.sqrt(datas[i][0]*datas[i][0]+datas[i][1]*datas[i][1])
-          rads.push(distance)
-        }
-
         //var datas=[[5,4],[3,4],[7,9],[8,0],[1,2],[10,8],[3,1],[8,7],[2,9]];
         //Initialising width, height and padding for svg
-        var w = 500;
-        var h = 500;
+        var w = 600;
+        var h = 400;
         var padding=30;
 
         //3.d Calculating average to colour circle based on whether it is above or below average x value
@@ -72,17 +64,19 @@
                  })
                  .attr("fill","none");
           var xScale = d3.scale.linear()
-                .domain([0,t_max])
-                .range([padding, w-padding]);
+                .domain([10,d3.max(datas,function(d){return d[0];})
+                ])
+                .range([padding,w-padding]);
+
           var yScale = d3.scale.linear()
-                .domain([0, t_max])
+                .domain([10,d3.max(datas,function(d){return d[1];})
+                ])
                 .range([h-padding, padding]);
+
           var rScale = d3.scale.linear()
-                 .domain([0, d3.max(rads, function(d) {
-                   return d;
-                   //return d;
-                 })])
+                 .domain([10,250])
                  .range([1, 5]);
+
          var xAxis = d3.svg.axis()
              .scale(xScale)
              .orient("bottom")
@@ -98,8 +92,8 @@
                 return yScale(d[1]);
               })
           circles.attr("r", function(d) {
-                var in_r=Math.sqrt(d[0]*d[0]+d[1]*d[1])
-                return rScale(in_r);
+                var in_r=Math.sqrt(rScale(d[0])**2+rScale(d[1])**2)
+                return in_r;
               })
               svg.append("text")
               .text("pjain310")

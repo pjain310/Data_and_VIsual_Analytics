@@ -1,0 +1,3 @@
+1. Average degree - 1.628 - Describes the avg no of edges connected to a vertex in a graph. Gives an idea about the density of thr graph. 
+2. Diameterh - 11 - Maximum shortest path between any two nodes in a network. Captures overall distance between nodes, largest number of vertices to be traversed in order to get from one node to another. 
+3. Average path length - 3.075 - Average of all shortest paths between nodes. Measure of information transport accross a network (on an avg how much you need to 'travel' to get from one node to another) 

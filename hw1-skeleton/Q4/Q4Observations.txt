@@ -1,0 +1,6 @@
+c.i.a 47
+c.i.b. 5 columns created (2 removed)
+c.ii 566
+c.iii if(isNull(value),”Unbranded”,value)
+c.iv if(toNumber(value)>100,”1”,”0”)
+c.v if(isNotNull(match(value,/.*(discount|offer|sale).*/)),”1”,”0”)

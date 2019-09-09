@@ -1,0 +1,2 @@
+A3.a.2: Budget vs. Ratings gives better separation, because values of budgets are more dispersed across y axis compared to Wins/Nominations.
+A3.c: Log and Sqrt scales are needed when the value to be plotted follows an exponential/Square distribution, to make visualisation easier. 

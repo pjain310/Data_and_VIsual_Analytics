@@ -1,0 +1,13 @@
+trigrams = LOAD 's3://cse6242-2019spring-trigrams-big/*' AS (trigram:chararray, year:int, occurrences:int, books:int);
+
+filt_tgs = FILTER trigrams BY (occurrences>=400 AND books>=15);
+
+bData = GROUP filt_tgs BY (trigram);
+
+res = FOREACH bData GENERATE FLATTEN(group),(double)SUM(filt_tgs.occurrences)/SUM(filt_tgs.books);
+
+result = ORDER res BY $1 DESC, $0 ASC;
+
+finalop = LIMIT result 20;
+
+STORE finalop INTO 's3://cse6242-pjain310/output-big/output' USING PigStorage('\t');

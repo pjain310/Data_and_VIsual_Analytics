@@ -1,0 +1,6 @@
+Tools for comparison: R, Tableau, D3
+1. Ease to develop for developers: R - multiple open source packages which are easy to use, Tableau - easy to use UI, D3 - large scale development, however not too user friendly
+2. Ease to maintain the visualization: R - single R script can be applicable to similar dataset, Tableau - will have to make new plots, no scope for automation, D3 - good for automation
+Usability of visualization developed for end users: R - somewhat limited, relatively less scope for customisation as well, Tableau - extremely useful, lot of scope for customisation, D3 - intermediate between Tableau and R
+Scalability of visualization to “large” datasets: R - scalable but very few visualisation options, Tableau - same as R, D3 - well scalable
+System requirements to run the visualization: R - software download (R+Rstudio) required, Tableau - expensive license required, D3 - easy, just need browser (+http server in some cases)

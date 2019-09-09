@@ -1,7 +1,11 @@
 <!DOCTYPE html>
 <meta charset="utf-8">
 <style type=text/css>
-  .axis path,
+  @media print
+  {
+  svg {page-break-after:always}
+  }
+      .axis path,
   .axis line {
     fill: none;
     stroke: black;
@@ -11,6 +15,8 @@
     font-family: sans-serif;
     font-size: 11px;
   }
+
+.pagebreak { page-break-before: always; }
 
   .legend rect {
   fill:white;
@@ -29,7 +35,7 @@
 <script src="../lib/d3.v5.min.js"></script>
 <head>
     <meta charset="utf-8">
-    <title>Scatterplot_PRERNA</title>
+    <title>pjain310</title>
 </head>
 <body>
   <script type="text/javascript" src="../lib/d3.v5.min.js"></script>
@@ -51,6 +57,9 @@
     var w=800;
     var h=500;
     var padding=40;
+    var max_wins=d3.max(dataset,function(d){
+      return d.WinsNoms;}
+    );
 
 
     //Create all scaling functions
@@ -79,10 +88,12 @@
       .range([h-padding, padding]);
 
       var yScaleLog = d3.scaleLog()
-      .domain([0.001, d3.max(dataset,function(d){
+      .clamp(true)
+      .domain([0.1, d3.max(dataset,function(d){
         return d.WinsNoms;}
       )])
-      .range([h-padding, padding]);
+      .range([h-padding, padding])
+      .nice();
 
       var yScaleSqrt = d3.scaleSqrt()
       .domain([0, d3.max(dataset,function(d){
@@ -99,10 +110,8 @@
       .range([d3.symbolCircle, d3.symbolCross]);
 
       var sizeScale = d3.scaleLinear()
-      .domain([0, d3.max(dataset,function(d){
-        return d.WinsNoms;}
-      )])
-      .range([15,30]);
+      .domain([0, max_wins])
+      .range([10,300]);
 
       //Create svg and symbol elements
       var svg = d3.select("body")
@@ -133,10 +142,8 @@
       var symbol = d3.symbol()
                     .size(20);
 
-      var symbol2 = d3.symbol()
-                        .size(dataset,function(d){
-                          return sizeScale(d.WinsNoms)
-                        });
+      var symbol3 = d3.symbol()
+      .type(function(d){ return shapeScale(d.IsGoodRating)});
 
 
       //Add axes for  SVG - 1
@@ -159,7 +166,7 @@
       .attr("text-anchor", "middle")
       .attr("transform","rotate(-90 30 260)")
       .style("font-size", "14px")
-      .text("Budget");
+      .text("Wins + Nominations");
 
       svg.append("text")
       .attr("x", w/2 + (padding/2))
@@ -211,7 +218,42 @@
         .text("Wins/Nominations vs Ratings Graph");
 
       // Add legend for SVG - 1
+      var legend = svg.selectAll(".legend")
+                .data(colourScale.domain())
+                .enter().append("g")
+                .attr("class", "legend");
 
+      svg.append("rect")
+      .attr("x",110)
+      .attr("y",70)
+      .attr("width",130)
+      .attr("height",80)
+      .attr("stroke","black")
+      .attr("fill","none");
+
+      var classes=[0,1];
+
+      legend.selectAll(".symbol")
+      .data(classes)
+      .enter().append("path")
+      .attr("d", function(d) { return symbol.type(shapeScale(d))(); })
+      .style("stroke", function(d) { return colourScale(d); })
+      .attr("transform", function(d,i) {
+      return "translate(" + 220 + "," + ((i * 30)+ 96) +")";
+    })
+      .attr("fill","none");
+
+      legend.append("text")
+      .attr("x", 200)
+      .attr("y", 100)
+      .attr("transform", function(d, i){return "translate(0," + i * 30 + ")";})
+      .attr("font-size", "15px")
+      .style("text-anchor", "end")
+      .text(function(d) {
+          if(d=="1")
+              return "Good Rating";
+          else return "Bad Rating";
+      });
 
       //Add gridlines for SVG - 2
       //Add gridlines
@@ -287,6 +329,44 @@
         .text("Budget vs Ratings Graph");
 
       //Add legend for SVG - 2
+      var legend = svg2.selectAll(".legend")
+                .data(colourScale.domain())
+                .enter().append("g")
+                .attr("class", "legend");
+
+      svg2.append("rect")
+      .attr("x",110)
+      .attr("y",70)
+      .attr("width",130)
+      .attr("height",80)
+      .attr("stroke","black")
+      .attr("fill","none");
+
+      var classes=[0,1];
+
+      legend.selectAll(".symbol")
+      .data(classes)
+      .enter().append("path")
+      .attr("d", function(d) { return symbol.type(shapeScale(d))(); })
+      .style("stroke", function(d) { return colourScale(d); })
+      .attr("transform", function(d,i) {
+      return "translate(" + 220 + "," + ((i * 30)+ 96) +")";
+    })
+      .attr("fill","none");
+
+      legend.append("text")
+      .attr("x", 200)
+      .attr("y", 100)
+      .attr("transform", function(d, i){return "translate(0," + i * 30 + ")";})
+      .attr("font-size", "15px")
+      .style("text-anchor", "end")
+      .text(function(d) {
+          if(d=="1")
+              return "Good Rating";
+          else return "Bad Rating";
+      });
+
+      // Page break
 
 
       // SVG 3 //
@@ -303,20 +383,93 @@
       .attr("transform", "translate("+padding+ "," + (h - padding) + ")")
       .call(gridlinesb);
 
+      //Add axes for  SVG - 3
+      svg3.append("g")
+      .attr("class", "x axis")
+      .attr("ticks",20)
+      .attr("transform", "translate(0," + (h - padding) + ")")
+      .call(d3.axisBottom(xScale));
+
+      svg3.append("g")
+      .attr("class", "y axis")
+      .attr("ticks",12)
+      .attr("transform", "translate(" + padding*2 + ",0)")
+      .call(d3.axisLeft(yScale3));
+
+      //Add axis titles
+      svg3.append("text")
+      .attr("x", (padding/2))
+      .attr("y", h/2 + (padding/2))
+      .attr("text-anchor", "middle")
+      .attr("transform","rotate(-90 30 260)")
+      .style("font-size", "14px")
+      .text("Votes");
+
+      svg3.append("text")
+      .attr("x", w/2 + (padding/2))
+      .attr("y", h - (padding/2.5))
+      .attr("text-anchor", "middle")
+      .style("font-size", "14px")
+      .text("Ratings");
+
         // Add points - SVG 3
         svg3.selectAll(".symbol")
           .data(dataset)
           .enter().append("path")
           .attr("class", "symbol")
-          .attr("size",function(d){
-            return sizeScale(d.WinsNoms);
-          })
-          .attr("d", function(d, i) { return symbol.type(shapeScale(d.IsGoodRating))(); })
+          .attr("d", function(d, i) { return symbol3.type(shapeScale(d.IsGoodRating)).size(sizeScale(d.WinsNoms))(); })
           .style("stroke", function(d) { return colourScale(d.IsGoodRating); })
           .attr("transform", function(d) {
           return "translate(" + xScale(d.Rating) + "," + yScale3(d.Votes) +")";
         })
           .attr("fill","none");
+
+          // Add header for SVG - 3
+          svg3.append("text")
+            .attr("x", (w / 2))
+            .attr("y", 0 + (padding/ 2))
+            .attr("text-anchor", "middle")
+            .style("font-size", "18px")
+            .style("text-decoration", "underline")
+            .text("Votes vs Ratings Graph");
+
+        //Add legend
+        var legend = svg3.selectAll(".legend")
+                  .data(colourScale.domain())
+                  .enter().append("g")
+                  .attr("class", "legend");
+
+        svg3.append("rect")
+        .attr("x",110)
+        .attr("y",70)
+        .attr("width",130)
+        .attr("height",80)
+        .attr("stroke","black")
+        .attr("fill","none");
+
+        var classes=[0,1];
+
+        legend.selectAll(".symbol")
+        .data(classes)
+        .enter().append("path")
+        .attr("d", function(d) { return symbol.type(shapeScale(d))(); })
+        .style("stroke", function(d) { return colourScale(d); })
+        .attr("transform", function(d,i) {
+        return "translate(" + 220 + "," + ((i * 30)+ 96) +")";
+      })
+        .attr("fill","none");
+
+        legend.append("text")
+        .attr("x", 200)
+        .attr("y", 100)
+        .attr("transform", function(d, i){return "translate(0," + i * 30 + ")";})
+        .attr("font-size", "15px")
+        .style("text-anchor", "end")
+        .text(function(d) {
+            if(d=="1")
+                return "Good Rating";
+            else return "Bad Rating";
+        });
 
           //Add axes for  SVG - 4
           svg4.append("g")
@@ -368,8 +521,8 @@
           .data(dataset)
           .enter().append("path")
           .attr("class", "symbol")
-          .attr("d", function(d, i) { return symbol.type(shapeScale(d.IsGoodRating))(); })
-          .style("stroke", function(d) { return colourScale(d.IsGoodRating); })
+          .attr("d", function(d, i) { console.log("Symbol"+d.IsGoodRating); return symbol.type(shapeScale(d.IsGoodRating))(); })
+          .style("stroke", function(d) { console.log("Shape"+d.IsGoodRating); return colourScale(d.IsGoodRating); })
           .attr("transform", function(d) {
           return "translate(" + xScale(d.Rating) + "," + yScaleSqrt(d.WinsNoms) +")";
         })
@@ -385,6 +538,42 @@
             .text("Wins/Nominations vs Ratings Graph - Square Root Scale");
 
           // Add legend for SVG - 4
+          var legend = svg4.selectAll(".legend")
+                    .data(colourScale.domain())
+                    .enter().append("g")
+                    .attr("class", "legend");
+
+          svg4.append("rect")
+          .attr("x",110)
+          .attr("y",70)
+          .attr("width",130)
+          .attr("height",80)
+          .attr("stroke","black")
+          .attr("fill","none");
+
+          var classes=[0,1];
+
+          legend.selectAll(".symbol")
+          .data(classes)
+          .enter().append("path")
+          .attr("d", function(d) { return symbol.type(shapeScale(d))(); })
+          .style("stroke", function(d) { return colourScale(d); })
+          .attr("transform", function(d,i) {
+          return "translate(" + 220 + "," + ((i * 30)+ 96) +")";
+        })
+          .attr("fill","none");
+
+          legend.append("text")
+          .attr("x", 200)
+          .attr("y", 100)
+          .attr("transform", function(d, i){return "translate(0," + i * 30 + ")";})
+          .attr("font-size", "15px")
+          .style("text-anchor", "end")
+          .text(function(d) {
+              if(d=="1")
+                  return "Good Rating";
+              else return "Bad Rating";
+          });
 
 
           //Add axes for  SVG - 5
@@ -454,9 +643,44 @@
             .text("Wins/Nominations vs Ratings Graph - Logarithmic Scale");
 
           // Add legend for SVG - 5
+          var legend = svg5.selectAll(".legend")
+                    .data(colourScale.domain())
+                    .enter().append("g")
+                    .attr("class", "legend");
 
+          svg5.append("rect")
+          .attr("x",110)
+          .attr("y",70)
+          .attr("width",130)
+          .attr("height",80)
+          .attr("stroke","black")
+          .attr("fill","none");
+
+          var classes=[0,1];
+
+          legend.selectAll(".symbol")
+          .data(classes)
+          .enter().append("path")
+          .attr("d", function(d) { return symbol.type(shapeScale(d))(); })
+          .style("stroke", function(d) { return colourScale(d); })
+          .attr("transform", function(d,i) {
+          return "translate(" + 220 + "," + ((i * 30)+ 96) +")";
+        })
+          .attr("fill","none");
+
+          legend.append("text")
+          .attr("x", 200)
+          .attr("y", 100)
+          .attr("transform", function(d, i){return "translate(0," + i * 30 + ")";})
+          .attr("font-size", "15px")
+          .style("text-anchor", "end")
+          .text(function(d) {
+              if(d=="1")
+                  return "Good Rating";
+              else return "Bad Rating";
+          });
 
     });
+
      </script>
    </body>
-</html>

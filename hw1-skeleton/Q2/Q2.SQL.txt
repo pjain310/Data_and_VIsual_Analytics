@@ -136,23 +136,13 @@ limit 10;
 
 -- [insert your SQL statement(s) BELOW this line]
 
-create view ctemp as
-select cast_id cid, movie_id as mid, movies.score as mscore
-from movie_cast
-inner join movies on movies.id=movie_cast.movie_id;
-
-create view collaborations as
-select movie_cast.cast_id as cast_id_1, ctemp.cid as cast_id_2,
-movie_cast.movie_id as mov_id, ctemp.mscore as movie_score
-from movie_cast
-inner join ctemp on movie_cast.movie_id = ctemp.mid
-where movie_cast.cast_id!=ctemp.cid and movie_cast.cast_id < ctemp.cid;
-
 create view good_collaboration as
-select collaborations.cast_id_1, collaborations.cast_id_2, count(*) as movie_count, avg(collaborations.movie_score) as average_movie_score
-from collaborations
-group by collaborations.cast_id_1, collaborations.cast_id_2 having count(*)>2 and avg(collaborations.movie_score)>40
-order by avg(collaborations.movie_score) desc;
+select a.cast_id as cast_id_1,b.cast_id as cast_id_2, count(*) as movie_count, avg(movies.score) as average_movie_score
+from movie_cast as a, movie_cast as b
+inner join movies on a.movie_id=movies.id
+where a.movie_id=b.movie_id and a.cast_id!=b.cast_id and a.cast_id<b.cast_id
+group by a.cast_id,b.cast_id having count(*)>2 and avg(movies.score)>40
+order by avg(movies.score) desc;
 
 -- [insert your SQL statement(s) ABOVE this line]
 
